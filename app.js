@@ -1,19 +1,25 @@
-const express = require("express");
-const { Pool } = require("pg");
 require("dotenv").config();
 
+const express = require("express");
+const { Pool } = require("pg");
+
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    database: process.env.DB_NAME,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
-});
+const pool = process.env.DATABASE_URL
+    ? new Pool({
+        connectionString: process.env.DATABASE_URL
+    })
+    : new Pool({
+        host: process.env.DB_HOST,
+        port: Number(process.env.DB_PORT),
+        database: process.env.DB_NAME,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD
+    });
 
 // Home route
 app.get("/", (req, res) => {
@@ -22,7 +28,7 @@ app.get("/", (req, res) => {
     });
 });
 
-// GET all books from PostgreSQL
+// GET all books
 app.get("/api/books", async (req, res) => {
     try {
         const result = await pool.query(
@@ -39,6 +45,7 @@ app.get("/api/books", async (req, res) => {
     }
 });
 
+// Start server
 app.listen(PORT, () => {
     console.log(`Book Tracker API running at http://localhost:${PORT}`);
 });
