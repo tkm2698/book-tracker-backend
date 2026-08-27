@@ -28,12 +28,32 @@ app.get("/", (req, res) => {
     });
 });
 
-// GET all books
-app.get("/api/books", async (req, res) => {
+// GET books with optional filters
+app.get("/api/v1/books", async (req, res) => {
     try {
-        const result = await pool.query(
-            "SELECT * FROM books ORDER BY book_id"
-        );
+        const { genre, status } = req.query;
+
+        let query = "SELECT * FROM books";
+        const values = [];
+        const conditions = [];
+
+        if (genre) {
+            values.push(genre);
+            conditions.push(`genre = $${values.length}`);
+        }
+
+        if (status) {
+            values.push(status);
+            conditions.push(`reading_status = $${values.length}`);
+        }
+
+        if (conditions.length > 0) {
+            query += " WHERE " + conditions.join(" AND ");
+        }
+
+        query += " ORDER BY book_id";
+
+        const result = await pool.query(query, values);
 
         res.json(result.rows);
     } catch (error) {
