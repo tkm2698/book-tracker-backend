@@ -64,7 +64,35 @@ app.get("/api/v1/books", async (req, res) => {
         });
     }
 });
+// POST a new book
+app.post("/api/v1/books", async (req, res) => {
+    try {
+        const {
+            title,
+            author,
+            genre,
+            reading_status,
+            rating,
+            notes
+        } = req.body;
 
+        const result = await pool.query(
+            `INSERT INTO books
+            (title, author, genre, reading_status, rating, notes)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *`,
+            [title, author, genre, reading_status, rating, notes]
+        );
+
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Failed to add book"
+        });
+    }
+});
 // Start server
 app.listen(PORT, () => {
     console.log(`Book Tracker API running at http://localhost:${PORT}`);
