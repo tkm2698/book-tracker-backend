@@ -93,6 +93,56 @@ app.post("/api/v1/books", async (req, res) => {
         });
     }
 });
+// PUT - update an existing book
+app.put("/api/v1/books/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const {
+            title,
+            author,
+            genre,
+            reading_status,
+            rating,
+            notes
+        } = req.body;
+
+        const result = await pool.query(
+            `UPDATE books
+             SET title = $1,
+                 author = $2,
+                 genre = $3,
+                 reading_status = $4,
+                 rating = $5,
+                 notes = $6
+             WHERE book_id = $7
+             RETURNING *`,
+            [
+                title,
+                author,
+                genre,
+                reading_status,
+                rating,
+                notes,
+                id
+            ]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                error: "Book not found"
+            });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Failed to update book"
+        });
+    }
+});
 // Start server
 app.listen(PORT, () => {
     console.log(`Book Tracker API running at http://localhost:${PORT}`);
