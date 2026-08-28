@@ -65,6 +65,22 @@ app.get("/api/v1/books", async (req, res) => {
         });
     }
 });
+// GET distinct book titles
+app.get("/api/v1/books/titles", async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT DISTINCT title FROM books ORDER BY title"
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            error: "Failed to retrieve book titles"
+        });
+    }
+});
 // POST a new book
 app.post("/api/v1/books", async (req, res) => {
     try {
